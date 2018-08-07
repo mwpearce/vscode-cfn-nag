@@ -1,7 +1,7 @@
 {
   "name": "vscode-cfn-nag",
   "author": "Mike Pearce",
-  "publisher": "EastmanChemicalCompany",
+  "publisher": "eastman",
   "displayName": "Cfn-Nag Linter",
   "description": "Integrates cfn-nag tool into VSCode.",
   "version": "0.0.1",
@@ -26,6 +26,10 @@
   },
   "engines": {
     "vscode": "^1.18.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://eastmanchem.visualstudio.com/DefaultCollection/Cloud%20Team/_git/Cfn-Nag%20Extension"
   },
   "icon": "images/logo.png",
   "main": "./client/out/extension",
