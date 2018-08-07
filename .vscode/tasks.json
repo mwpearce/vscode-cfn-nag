@@ -1,0 +1,43 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "watch",
+			"dependsOn": [
+				"npm: watch:client",
+				"npm: watch:server"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"type": "npm",
+			"script": "watch:client",
+			"isBackground": true,
+			"group": "build",
+			"presentation": {
+				"reveal": "never",
+				"panel": "dedicated"
+			},
+			"problemMatcher": [
+				"$tsc-watch"
+			]
+		},
+		{
+			"type": "npm",
+			"script": "watch:server",
+			"isBackground": true,
+			"group": "build",
+			"presentation": {
+				"reveal": "never",
+				"panel": "dedicated"
+			},
+			"problemMatcher": [
+				"$tsc-watch"
+			]
+		}
+	]
+}

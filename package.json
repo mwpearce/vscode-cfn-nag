@@ -1,0 +1,64 @@
+{
+  "name": "vscode-cfn-nag",
+  "author": "Mike Pearce",
+  "publisher": "EastmanChemicalCompany",
+  "displayName": "Cfn-Nag Linter",
+  "description": "Integrates cfn-nag tool into VSCode.",
+  "version": "0.0.1",
+  "scripts": {
+    "postinstall": "cd server && npm install && cs ../client && npm install && cd ..",
+    "vscode:prepublish": "cd client && npm run update-vscode && cd ..",
+    "compile": "npm run compile:client && npm run compile:server",
+    "compile:client": "tsc -p ./client/tsconfig.json",
+    "watch:client": "tsc -w -p ./client/tsconfig.json",
+    "compile:server": "tsc -p ./server/tsconfig.json",
+    "watch:server": "tsc -w -p ./server/tsconfig.json",
+    "lint": "tslint --project server/tsconfig.json && tslint --project client/tsconfig.json"
+  },
+  "license": "Apache-2.0",
+  "categories": [
+    "Linters"
+  ],
+  "devDependencies": {
+    "@types/mocha": "^5.2.0",
+    "@types/node": "^8.0.0",
+    "typescript": "^2.8.3"
+  },
+  "engines": {
+    "vscode": "^1.18.0"
+  },
+  "icon": "images/logo.png",
+  "main": "./client/out/extension",
+  "activationEvents": [
+    "onLanguage:yaml",
+    "onLanguage:json"
+  ],
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Cfn Nag Linter Configuation",
+      "properties": {
+        "cfnNagLint.path": {
+          "type": "string",
+          "default": "cfn_nag",
+          "description": "(Optional) Path to cfn_nag"
+        },
+        "cfnNagLint.ruleDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "(Optional) Extra rule directory"
+        },
+        "cfnNagLint.profilePath": {
+          "type": "string",
+          "default": "",
+          "description": "(Optional) Path to a profile file"
+        },
+        "cfnNagLint.parameterValuesPath": {
+          "type": "string",
+          "default": "",
+          "description": "(Optional) Path to a JSON file to pull Parameter values from"
+        }
+      }
+    }
+  }
+}

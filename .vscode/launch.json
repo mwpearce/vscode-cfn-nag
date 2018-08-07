@@ -1,0 +1,37 @@
+{
+    "version": "0.0.1",
+    "configurations": [
+        {
+            "type": "extensionHost",
+            "request": "launch",
+            "name": "Launch Client",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}"
+            ],
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/client/**/*.js"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach to Server",
+            "address": "localhost",
+            "protocol": "inspector",
+            "port": 6010,
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/server/out/**/*.js"
+            ]
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Client + Server",
+            "configurations": [ "Launch Client", "Attach to Server" ]
+        }
+    ]
+}
