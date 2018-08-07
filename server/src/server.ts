@@ -105,8 +105,8 @@ async function getDocumentSettings(resource: string): Promise<CfnNagLintSettings
     return result;
 }
 
-documents.onDidClose(async (e) =>  {
-    connection.console.log('onDidClose');
+documents.onDidClose(async (e) => {
+    // connection.console.log('onDidClose');
     // Run one last validation in case the file was reverted on close
     const timer = documentTimers.get(e.document.uri);
     if (timer) {
@@ -130,7 +130,7 @@ function convertSeverity(violationType: string): DiagnosticSeverity {
 }
 
 documents.onDidChangeContent((event) => {
-    connection.console.log('onDidChangeContent');
+    // connection.console.log('onDidChangeContent');
     const uri = event.document.uri;
     let timer = documentTimers.get(uri);
 
@@ -146,7 +146,7 @@ documents.onDidChangeContent((event) => {
 });
 
 async function validateCloudFormationFile(document: TextDocument): Promise<void> {
-    connection.console.log('validateCloudFormationFile');
+    // connection.console.log('validateCloudFormationFile');
 
     let settings = await getDocumentSettings(document.uri);
     const uri = document.uri;
@@ -167,6 +167,7 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
     connection.console.log('Is CFN: ' + is_cfn);
 
     if (is_cfn) {
+        // const file_to_lint = Files.uriToFilePath(document.uri);
         // const args = ['--output-format=json', '--input-path=' + file_to_lint];
 
         const args = [];
@@ -185,10 +186,7 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
 
         connection.console.log(`Running.....${settings.path} ${args}`);
 
-        const child = spawn(settings.path, args);
-        child.stdin.setDefaultEncoding('utf-8');
-        child.stdin.write(text);
-        child.stdin.end();
+        const child = spawn(settings.path, args, { shell: true });
 
         const diagnostics: Diagnostic[] = [];
         const filename = uri.toString();
@@ -201,7 +199,7 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
                 range: {
                     start: {
                         line: 0,
-                        character: Number.MAX_VALUE
+                        character: 0
                     },
                     end: {
                         line: 0,
@@ -222,7 +220,7 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
                 range: {
                     start: {
                         line: 0,
-                        character: Number.MAX_VALUE
+                        character: 0
                     },
                     end: {
                         line: 0,
@@ -243,71 +241,73 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
         child.on('exit', function (code, signal) {
             connection.console.log(`Child process exited with code ${code} and signal ${signal}`);
             const tmp = stdout.toString();
-            const obj = JSON.parse(tmp);
+            if (tmp.length > 0) {
+                const obj = JSON.parse(tmp);
 
-            if (obj != null) {
-                for (let violation of obj.violations) {
-                    if (!violation.logical_resource_ids) {
-                        const diagnostic: Diagnostic = {
-                            code: violation.id,
-                            message: violation.message,
-                            severity: convertSeverity(violation.type),
-                            range: {
-                                start: {
-                                    line: 0,
-                                    character: 0
-                                },
-                                end: {
-                                    line: 0,
-                                    character: Number.MAX_VALUE
-                                }
-                            }
-                        };
-                        diagnostics.push(diagnostic);
-
-                    } else {
-                        for (let resourceId of violation.logical_resource_ids) {
-                            // Let's try to find the position in the file where this resource id is located
-
-                            let resource_regex: RegExp;
-                            if (document.languageId == 'json') {
-                                resource_regex = new RegExp('"' + resourceId + '"(?=\\s*:)');
-
-                            } else if (document.languageId == 'yaml') {
-                                resource_regex = new RegExp('\\b' + resourceId + '(?=\\s*:)');
-                            }
-
-                            let start: Position;
-                            let end: Position;
-                            let message: string;
-
-                            const match = resource_regex.exec(text);
-                            if (match) {
-                                start = document.positionAt(match.index);
-                                end = document.positionAt(match.index + match[0].length);
-                                message = '(' + violation.id + ') ' + violation.message;
-                            } else {
-                                start = {
-                                    line: 0,
-                                    character: 0
-                                };
-                                end = {
-                                    line: 0,
-                                    character: Number.MAX_VALUE
-                                };
-                                message = '(' + violation.id + ') ' + resourceId + ': ' + violation.message;
-                            }
-
+                if (obj && obj.violations) {
+                    for (let violation of obj.violations) {
+                        if (!violation.logical_resource_ids) {
                             const diagnostic: Diagnostic = {
                                 code: violation.id,
-                                message: message,
+                                message: violation.message,
                                 severity: convertSeverity(violation.type),
                                 range: {
-                                    start: start,
-                                    end: end
+                                    start: {
+                                        line: 0,
+                                        character: 0
+                                    },
+                                    end: {
+                                        line: 0,
+                                        character: Number.MAX_VALUE
+                                    }
                                 }
                             };
                             diagnostics.push(diagnostic);
+
+                        } else {
+                            for (let resourceId of violation.logical_resource_ids) {
+                                // Let's try to find the position in the file where this resource id is located
+
+                                let resource_regex: RegExp;
+                                if (document.languageId == 'json') {
+                                    resource_regex = new RegExp('"' + resourceId + '"(?=\\s*:)');
+
+                                } else if (document.languageId == 'yaml') {
+                                    resource_regex = new RegExp('\\b' + resourceId + '(?=\\s*:)');
+                                }
+
+                                let start: Position;
+                                let end: Position;
+                                let message: string;
+
+                                const match = resource_regex.exec(text);
+                                if (match) {
+                                    start = document.positionAt(match.index);
+                                    end = document.positionAt(match.index + match[0].length);
+                                    message = '(' + violation.id + ') ' + violation.message;
+                                } else {
+                                    start = {
+                                        line: 0,
+                                        character: 0
+                                    };
+                                    end = {
+                                        line: 0,
+                                        character: Number.MAX_VALUE
+                                    };
+                                    message = '(' + violation.id + ') ' + resourceId + ': ' + violation.message;
+                                }
+
+                                const diagnostic: Diagnostic = {
+                                    code: violation.id,
+                                    message: message,
+                                    severity: convertSeverity(violation.type),
+                                    range: {
+                                        start: start,
+                                        end: end
+                                    }
+                                };
+                                diagnostics.push(diagnostic);
+                            }
                         }
                     }
                 }
@@ -321,6 +321,10 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
             });
             isValidating.delete(uri);
         });
+
+        child.stdin.setDefaultEncoding('utf-8');
+        child.stdin.write(text);
+        child.stdin.end();
 
     }
 }
