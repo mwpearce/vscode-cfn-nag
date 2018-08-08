@@ -141,7 +141,7 @@ documents.onDidChangeContent((event) => {
 
     timer = setTimeout((e) => {
         validateCloudFormationFile(e.document);
-    }, 2000, event);
+    }, 1000, event);
     documentTimers.set(uri, timer);
 });
 

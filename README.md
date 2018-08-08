@@ -1,14 +1,14 @@
-# Cfn-Nag Linter
+# Visual Studio Cpde Extension for Cfn-Nag Linter
 
-VS Code CloudFormation Linter uses  [cfn-nag](https://github.com/stelligent/cfn_nag) to lint your CloudFormation templates.
+This is a [Visual Studio Code](https://code.visualstudio.com) Extension from running [cfn-nag](https://github.com/stelligent/cfn_nag) to lint your CloudFormation templates.
 
 ## Features
 
 Uses [cfn-nag](https://github.com/stelligent/cfn_nag) to parse and show issues with CloudFormation templates.
 
-For example, if you define a Resource named *Role* and specify a resource with an asterisk or an action with an asterisk, errors and warnings are reported:
+For example, if you define a Resource named *Role* and specify a resource with an asterisk or an action with an asterisk, errors and warnings are reported.
 
-![Preview](images/preview.png)
+![Preview](https://github.com/mwpearce/Cfn-Nag-Extension/blob/master/images/preview.png)
 
 ## Requirements
 
@@ -16,7 +16,26 @@ Requires [cfn-nag](https://github.com/stelligent/cfn_nag) to be installed: `gem 
 
 ## Extension Settings
 
-* `cfnNagLint.path`: (Optional) path to cfn_nag script
-* `cfnNagLint.ruleDirectory`: (Optional) path to extra rule directory
-* `cfnNagLint.profilePath`: (Optional) Path to a profile file
-* `cfnNagLint.parameterValuesPath`: (Optional) Path to a JSON file to pull Parameter values from
+This extension provides the following settings:
+
+```javascript
+	// (Optional) Path to cfn_nag script
+	"cfnNagLint.path": "cfn_nag",
+
+	// (Optional) Path to extra rule directory
+	"cfnNagLint.ruleDirectory": "",
+
+	// (Optional) Path to a profile file
+	"cfnNagLint.profilePath": "",
+
+	// (Optional) Path to a JSON file to pull Parameter values from
+	"cfnNagLint.parameterValuesPath": ""
+```
+
+## Known Issues
+
+Bug reports are welcomed.
+
+## License
+
+This extension is open-sources under the MIT license in the LICENSE file of this repository.

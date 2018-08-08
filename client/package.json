@@ -1,15 +1,13 @@
 {
   "name": "vscode-cfn-nag",
-  "version": "0.0.1",
-  "description": "Cfn Nag Linter",
   "scripts": {
     "update-vscode": "node ./node_modules/vscode/bin/install",
-    "postinstall": "node ./node_modules/vscode/bin/install"
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "clean": "rm -rf node_modules && rm -rf out"
   },
-  "author": "Mike Pearce",
-  "license": "Apache-2.0",
   "engines": {
-    "vscode": "^1.23.0"
+    "vscode": "*",
+    "node": "*"
   },
   "devDependencies": {},
   "dependencies": {

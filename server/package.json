@@ -1,10 +1,8 @@
 {
   "name": "vscode-cfn-nag",
-  "version": "0.0.1",
-  "description": "Cfn Nag Lint Server",
-  "scripts": {},
-  "author": "Mike Pearce",
-  "license": "Apache-2.0",
+  "scripts": {
+    "clean": "rm -rf node_modules && rm -rf out"
+  },
   "dependencies": {},
   "devDependencies": {
     "vscode-languageserver": "^4.1.3",

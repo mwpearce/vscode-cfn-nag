@@ -4,18 +4,19 @@
   "publisher": "eastman",
   "displayName": "Cfn-Nag Linter",
   "description": "Integrates cfn-nag tool into VSCode.",
-  "version": "0.0.1",
+  "version": "0.1.4",
   "scripts": {
     "postinstall": "cd server && npm install && cd ../client && npm install && cd ..",
-    "vscode:prepublish": "cd client && npm run update-vscode && cd ..",
+    "vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
     "compile": "npm run compile:client && npm run compile:server",
     "compile:client": "tsc -p ./client/tsconfig.json",
     "watch:client": "tsc -w -p ./client/tsconfig.json",
     "compile:server": "tsc -p ./server/tsconfig.json",
     "watch:server": "tsc -w -p ./server/tsconfig.json",
+    "clean": "rm -rf node_modules && cd client && npm run clean && cd ../server && npm run clean && cd ..",
     "lint": "tslint --project server/tsconfig.json && tslint --project client/tsconfig.json"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "categories": [
     "Linters"
   ],
@@ -25,13 +26,16 @@
     "typescript": "^2.8.3"
   },
   "engines": {
-    "vscode": "^1.18.0"
+    "vscode": "^1.18.0",
+    "node": "*"
   },
   "repository": {
     "type": "git",
-    "url": "https://eastmanchem.visualstudio.com/DefaultCollection/Cloud%20Team/_git/Cfn-Nag%20Extension"
+    "url": "https://github.com/mwpearce/Cfn-Nag-Extension"
   },
-  "icon": "images/logo.png",
+  "bugs": {
+    "url": "https://github.com/mwpearce/Cfn-Nag-Extension/issues"
+  },
   "main": "./client/out/extension",
   "activationEvents": [
     "onLanguage:yaml",
