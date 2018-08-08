@@ -8,7 +8,7 @@ Uses [cfn-nag](https://github.com/stelligent/cfn_nag) to parse and show issues w
 
 For example, if you define a Resource named *Role* and specify a resource with an asterisk or an action with an asterisk, errors and warnings are reported.
 
-![Preview](https://github.com/mwpearce/Cfn-Nag-Extension/blob/master/images/preview.png)
+![Preview](https://github.com/mwpearce/vscode-cfn-nag/raw/master/images/preview.png)
 
 ## Requirements
 
