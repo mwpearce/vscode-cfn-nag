@@ -1,6 +1,6 @@
-# Visual Studio Cpde Extension for Cfn-Nag Linter
+# Visual Studio Code Extension for Cfn-Nag Linter
 
-This is a [Visual Studio Code](https://code.visualstudio.com) Extension from running [cfn-nag](https://github.com/stelligent/cfn_nag) to lint your CloudFormation templates.
+This is a [Visual Studio Code](https://code.visualstudio.com) Extension for running [cfn-nag](https://github.com/stelligent/cfn_nag) to lint your CloudFormation templates.
 
 ## Features
 
@@ -19,17 +19,17 @@ Requires [cfn-nag](https://github.com/stelligent/cfn_nag) to be installed: `gem 
 This extension provides the following settings:
 
 ```javascript
-	// (Optional) Path to cfn_nag script
-	"cfnNagLint.path": "cfn_nag",
+  // (Optional) Path to cfn_nag script
+  "cfnNagLint.path": "cfn_nag",
 
-	// (Optional) Path to extra rule directory
-	"cfnNagLint.ruleDirectory": "",
+  // (Optional) Path to extra rule directory
+  "cfnNagLint.ruleDirectory": "",
 
-	// (Optional) Path to a profile file
-	"cfnNagLint.profilePath": "",
+  // (Optional) Path to a profile file
+  "cfnNagLint.profilePath": "",
 
-	// (Optional) Path to a JSON file to pull Parameter values from
-	"cfnNagLint.parameterValuesPath": ""
+  // (Optional) Path to a JSON file to pull Parameter values from
+  "cfnNagLint.parameterValuesPath": ""
 ```
 
 ## Known Issues
