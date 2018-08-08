@@ -38,4 +38,4 @@ Bug reports are welcomed.
 
 ## License
 
-This extension is open-sources under the MIT license in the LICENSE file of this repository.
+This extension is open-sourced under the MIT license in the LICENSE file of this repository.
