@@ -19,17 +19,23 @@ Requires [cfn-nag](https://github.com/stelligent/cfn_nag) to be installed: `gem 
 This extension provides the following settings:
 
 ```javascript
-  // (Optional) Path to cfn_nag script
+  // Path to cfn_nag script. Default: cfn_nag
   "cfnNagLint.path": "cfn_nag",
 
-  // (Optional) Path to extra rule directory
+  // Path to extra rule directory. Default: empty
   "cfnNagLint.ruleDirectory": "",
 
-  // (Optional) Path to a profile file
+  // Path to a profile file. Default: empty
   "cfnNagLint.profilePath": "",
 
-  // (Optional) Path to a JSON file to pull Parameter values from
-  "cfnNagLint.parameterValuesPath": ""
+  // Path to a JSON file to pull Parameter values from. Default: empty
+  "cfnNagLint.parameterValuesPath": "",
+
+  // Minimum problem level to report: WARN, FAIL. Default: WARN
+  "cfnNagLint.minimumProblemLevel": "FAIL",
+
+  // Allow using Metadata to suppress violations: Default: true
+  "cfnNagLint.allowSuppression": true
 ```
 
 ## Known Issues

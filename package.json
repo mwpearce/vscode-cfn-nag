@@ -4,7 +4,7 @@
   "publisher": "eastman",
   "displayName": "Cfn-Nag Linter",
   "description": "Integrates cfn-nag tool into VSCode.",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "scripts": {
     "postinstall": "cd server && npm install && cd ../client && npm install && cd ..",
     "vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
@@ -49,22 +49,32 @@
         "cfnNagLint.path": {
           "type": "string",
           "default": "cfn_nag",
-          "description": "(Optional) Path to cfn_nag"
+          "description": "Path to cfn_nag"
         },
         "cfnNagLint.ruleDirectory": {
           "type": "string",
           "default": "",
-          "description": "(Optional) Extra rule directory"
+          "description": "Extra rule directory"
         },
         "cfnNagLint.profilePath": {
           "type": "string",
           "default": "",
-          "description": "(Optional) Path to a profile file"
+          "description": "Path to a profile file"
         },
         "cfnNagLint.parameterValuesPath": {
           "type": "string",
           "default": "",
-          "description": "(Optional) Path to a JSON file to pull Parameter values from"
+          "description": "Path to a JSON file to pull Parameter values from"
+        },
+        "cfnNagLint.minimumProblemLevel": {
+          "type": "string",
+          "default": "WARN",
+          "description": "Mimimum problem level to report: WARN, FAIL."
+        },
+        "cfnNagLint.allowSuppression": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow using Metadata to suppress violations"
         }
       }
     }
