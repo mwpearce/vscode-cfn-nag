@@ -20,10 +20,12 @@
   "categories": [
     "Linters"
   ],
+  "dependencies": {
+    "typescript": "^2.8.3"
+  },
   "devDependencies": {
     "@types/mocha": "^5.2.0",
-    "@types/node": "^8.0.0",
-    "typescript": "^2.8.3"
+    "@types/node": "^8.0.0"
   },
   "engines": {
     "vscode": "^1.26.0",
