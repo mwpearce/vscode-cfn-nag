@@ -177,6 +177,8 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
 
         const args = [];
 
+        args.push('--output-format=json');
+
         if (settings.allowSuppression) {
             args.push('--allow-suppression');
         }
