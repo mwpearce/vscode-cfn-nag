@@ -255,77 +255,82 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
             const tmp = stdout.toString();
             if (tmp.length > 0) {
                 const minSeverity = convertSeverity(settings.minimumProblemLevel);
-                const obj = JSON.parse(tmp);
+                try {
 
-                if (obj && obj.violations) {
-                    for (let violation of obj.violations) {
-                        const severity = convertSeverity(violation.type);
-                        if (severity <= minSeverity) {
-                            if (!violation.logical_resource_ids) {
-                                const diagnostic: Diagnostic = {
-                                    code: violation.id,
-                                    message: violation.message,
-                                    severity: severity,
-                                    range: {
-                                        start: {
-                                            line: 0,
-                                            character: 0
-                                        },
-                                        end: {
-                                            line: 0,
-                                            character: Number.MAX_VALUE
-                                        }
-                                    }
-                                };
-                                diagnostics.push(diagnostic);
+                    const obj = JSON.parse(tmp);
 
-                            } else {
-                                for (let resourceId of violation.logical_resource_ids) {
-                                    // Let's try to find the position in the file where this resource id is located
-
-                                    let resource_regex: RegExp;
-                                    if (document.languageId == 'json') {
-                                        resource_regex = new RegExp('"' + resourceId + '"(?=\\s*:)');
-
-                                    } else if (document.languageId == 'yaml') {
-                                        resource_regex = new RegExp('\\b' + resourceId + '(?=\\s*:)');
-                                    }
-
-                                    let start: Position;
-                                    let end: Position;
-                                    let message: string;
-
-                                    const match = resource_regex.exec(text);
-                                    if (match) {
-                                        start = document.positionAt(match.index);
-                                        end = document.positionAt(match.index + match[0].length);
-                                        message = '(' + violation.id + ') ' + violation.message;
-                                    } else {
-                                        start = {
-                                            line: 0,
-                                            character: 0
-                                        };
-                                        end = {
-                                            line: 0,
-                                            character: Number.MAX_VALUE
-                                        };
-                                        message = '(' + violation.id + ') ' + resourceId + ': ' + violation.message;
-                                    }
-
+                    if (obj && obj.violations) {
+                        for (let violation of obj.violations) {
+                            const severity = convertSeverity(violation.type);
+                            if (severity <= minSeverity) {
+                                if (!violation.logical_resource_ids) {
                                     const diagnostic: Diagnostic = {
                                         code: violation.id,
-                                        message: message,
+                                        message: violation.message,
                                         severity: severity,
                                         range: {
-                                            start: start,
-                                            end: end
+                                            start: {
+                                                line: 0,
+                                                character: 0
+                                            },
+                                            end: {
+                                                line: 0,
+                                                character: Number.MAX_VALUE
+                                            }
                                         }
                                     };
                                     diagnostics.push(diagnostic);
+
+                                } else {
+                                    for (let resourceId of violation.logical_resource_ids) {
+                                        // Let's try to find the position in the file where this resource id is located
+
+                                        let resource_regex: RegExp;
+                                        if (document.languageId == 'json') {
+                                            resource_regex = new RegExp('"' + resourceId + '"(?=\\s*:)');
+
+                                        } else if (document.languageId == 'yaml') {
+                                            resource_regex = new RegExp('\\b' + resourceId + '(?=\\s*:)');
+                                        }
+
+                                        let start: Position;
+                                        let end: Position;
+                                        let message: string;
+
+                                        const match = resource_regex.exec(text);
+                                        if (match) {
+                                            start = document.positionAt(match.index);
+                                            end = document.positionAt(match.index + match[0].length);
+                                            message = '(' + violation.id + ') ' + violation.message;
+                                        } else {
+                                            start = {
+                                                line: 0,
+                                                character: 0
+                                            };
+                                            end = {
+                                                line: 0,
+                                                character: Number.MAX_VALUE
+                                            };
+                                            message = '(' + violation.id + ') ' + resourceId + ': ' + violation.message;
+                                        }
+
+                                        const diagnostic: Diagnostic = {
+                                            code: violation.id,
+                                            message: message,
+                                            severity: severity,
+                                            range: {
+                                                start: start,
+                                                end: end
+                                            }
+                                        };
+                                        diagnostics.push(diagnostic);
+                                    }
                                 }
                             }
                         }
                     }
+                } catch (error) {
+                    connection.console.warn(`Unexpected response from cfn-nag: ${tmp}`)
                 }
             }
         });
