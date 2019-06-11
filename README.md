@@ -34,8 +34,11 @@ This extension provides the following settings:
   // Minimum problem level to report: WARN, FAIL. Default: WARN
   "cfnNagLint.minimumProblemLevel": "FAIL",
 
-  // Allow using Metadata to suppress violations: Default: true
+  // Allow using Metadata to suppress violations. Default: true
   "cfnNagLint.allowSuppression": true
+
+  // Output additional information for debugging purposes. Default: false
+  "cfnNagLint.debug": true
 ```
 
 ## Known Issues

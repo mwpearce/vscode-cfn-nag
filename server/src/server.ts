@@ -14,7 +14,8 @@ import {
     DidChangeConfigurationNotification
 } from 'vscode-languageserver';
 
-import { spawn } from 'child_process';
+import { exec } from 'child_process';
+import { isArray } from 'util';
 
 const connection: IConnection = createConnection(ProposedFeatures.all);
 
@@ -66,6 +67,7 @@ interface CfnNagLintSettings {
     parameterValuesPath: string;
     minimumProblemLevel: string;
     allowSuppression: boolean;
+    debug: boolean;
 }
 
 const defaultSettings: CfnNagLintSettings = {
@@ -74,13 +76,15 @@ const defaultSettings: CfnNagLintSettings = {
     profilePath: '',
     ruleDirectory: '',
     minimumProblemLevel: 'WARN',
-    allowSuppression: true
+    allowSuppression: true,
+    debug: false
 };
 
 let globalSettings: CfnNagLintSettings = defaultSettings;
 let documentSettings: Map<string, Thenable<CfnNagLintSettings>> = new Map();
 let documentTimers: Map<string, NodeJS.Timer> = new Map();
 let isValidating: Map<string, boolean> = new Map();
+let settings: CfnNagLintSettings;
 
 connection.onDidChangeConfiguration((change) => {
     if (hasConfigurationCapability) {
@@ -152,7 +156,7 @@ documents.onDidChangeContent((event) => {
 async function validateCloudFormationFile(document: TextDocument): Promise<void> {
     // connection.console.log('validateCloudFormationFile');
 
-    let settings = await getDocumentSettings(document.uri);
+    settings = await getDocumentSettings(document.uri);
     const uri = document.uri;
 
     // Don't validate if we're already doing that
@@ -172,12 +176,28 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
     connection.console.log('Is CFN: ' + is_cfn);
 
     if (is_cfn) {
-        // const file_to_lint = Files.uriToFilePath(document.uri);
-        // const args = ['--output-format=json', '--input-path=' + file_to_lint];
+        // First figure out which version of cfn_nag is installed
+        const version = await getVersion(settings);
 
         const args = [];
 
-        args.push('--output-format=json');
+        if (settings.debug) {
+            connection.console.info(`Current cfn_nag version: ${version}`)
+        }
+
+        if (version) {
+            // Only use the output-format parameter on versions 0.4.8 and onward.  Not supported earlier.
+            const comparison = compareVersions(version, '0.4.8');
+            if (settings.debug) {
+                connection.console.info(`Version comparison = ${comparison}`);
+            }
+            if (comparison) {
+                args.push('--output-format=json');
+            }
+        } else {
+            // Couldn't determine version, so just assume the latest
+            args.push('--output-format=json');
+        }
 
         if (settings.allowSuppression) {
             args.push('--allow-suppression');
@@ -198,71 +218,60 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
             args.push(`--parameter-values-path=${settings.parameterValuesPath}`);
         }
 
-        connection.console.log(`Running.....${settings.path} ${args}`);
+        if (settings.debug) {
+            connection.console.info(`Running.....${settings.path} ${args}`);
+        }
 
-        const child = spawn(settings.path, args, { shell: true });
+        const child = exec(settings.path + ' ' + args.join(' '), function (err: Error, stdout: string, stderr: string) {
+            const diagnostics: Diagnostic[] = [];
+            const filename = uri.toString();
 
-        const diagnostics: Diagnostic[] = [];
-        const filename = uri.toString();
+            if (err) {
+                if (settings.debug) {
+                    connection.console.warn(`Error returned but ignored: ${err}`);
+                }
+            }
 
-        child.on('error', function (err) {
-            const errorMessage = `Unable to start cfn_nag (${err}).  Is cfn_nag installed correctly?`;
-            connection.console.log(errorMessage);
-
-            const diagnostic: Diagnostic = {
-                range: {
-                    start: {
-                        line: 0,
-                        character: 0
+            if (stderr.length > 0) {
+                connection.console.error(stderr);
+                const diagnostic: Diagnostic = {
+                    range: {
+                        start: {
+                            line: 0,
+                            character: 0
+                        },
+                        end: {
+                            line: 0,
+                            character: Number.MAX_VALUE
+                        }
                     },
-                    end: {
-                        line: 0,
-                        character: Number.MAX_VALUE
-                    }
-                },
-                severity: DiagnosticSeverity.Error,
-                message: errorMessage
-            };
-            diagnostics.push(diagnostic);
-        });
+                    severity: DiagnosticSeverity.Error,
+                    message: stderr
+                };
+                diagnostics.push(diagnostic);
 
-        child.stderr.on('data', (data: Buffer) => {
-            // connection.console.log(`Received output on stderr: ${data}`);
-            const err = data.toString();
-            connection.console.log(err);
-            const diagnostic: Diagnostic = {
-                range: {
-                    start: {
-                        line: 0,
-                        character: 0
-                    },
-                    end: {
-                        line: 0,
-                        character: Number.MAX_VALUE
-                    }
-                },
-                severity: DiagnosticSeverity.Error,
-                message: err
-            };
-            diagnostics.push(diagnostic);
-        });
+            } else if (stdout.length > 0) {
+                if (settings.debug) {
+                    connection.console.info(stdout);
+                }
 
-        let stdout = '';
-        child.stdout.on('data', (data: Buffer) => {
-            stdout = stdout.concat(data.toString());
-        });
-
-        child.on('exit', function (code, signal) {
-            connection.console.log(`Child process exited with code ${code} and signal ${signal}`);
-            const tmp = stdout.toString();
-            if (tmp.length > 0) {
                 const minSeverity = convertSeverity(settings.minimumProblemLevel);
                 try {
+                    const obj = JSON.parse(stdout);
 
-                    const obj = JSON.parse(tmp);
+                    let violations: any = null;
+                    if (obj) {
+                        if (isArray(obj)) {
+                            if (obj[0].file_results && obj[0].file_results.violations) {
+                                violations = obj[0].file_results.violations;
+                            }
+                        } else if (obj.violations) {
+                            violations = obj.violations;
+                        }
+                    }
 
-                    if (obj && obj.violations) {
-                        for (let violation of obj.violations) {
+                    if (violations) {
+                        for (let violation of violations) {
                             const severity = convertSeverity(violation.type);
                             if (severity <= minSeverity) {
                                 if (!violation.logical_resource_ids) {
@@ -332,12 +341,12 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
                         }
                     }
                 } catch (error) {
-                    connection.console.warn(`Unexpected response from cfn-nag: ${tmp}`)
+                    connection.console.warn(`Unexpected response from cfn_nag: ${stdout}`)
                 }
+            } else {
+                connection.console.warn('No response returned from cfn_nag');
             }
-        });
 
-        child.on('close', () => {
             connection.sendDiagnostics({
                 uri: filename,
                 diagnostics
@@ -348,10 +357,63 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
         child.stdin.setDefaultEncoding('utf-8');
         child.stdin.write(text);
         child.stdin.end();
-
     }
 }
 
+async function getVersion(settings: CfnNagLintSettings): Promise<string> {
+
+    return new Promise<string>(resolve => {
+        if (settings.debug) {
+            connection.console.log(`Running.....${settings.path} --version`);
+        }
+
+        exec(settings.path + ' --version', function (error: Error, stdout: string, stderr: string) {
+            if (error) {
+                if (settings.debug) {
+                    connection.console.error('Error: ${error}');
+                }
+                resolve(null);
+            } else if (stderr) {
+                if (settings.debug) {
+                    connection.console.error('Error: ${stderr}');
+                }
+                resolve(null);
+            } else if (stdout) {
+                resolve(stdout.trim());
+            }
+            else {
+                if (settings.debug) {
+                    connection.console.warn('No response returned.');
+                }
+                resolve(null);
+            }
+        });
+    });
+}
+
+function compareVersions(version1: string, version2: string): number {
+
+    const aVersion1 = version1.split('.');
+    const aVersion2 = version2.split('.');
+
+    for (let ix = 0; ix < aVersion1.length; ix++) {
+        if (ix+1 > aVersion2.length) {
+            return 1;
+        } else {
+            if (parseInt(aVersion1[ix]) > parseInt(aVersion2[ix])) {
+                return 1;
+            } else if (aVersion1[ix] < aVersion2[ix]) {
+                return -1;
+            }
+        }
+    }
+
+    if (aVersion2.length > aVersion1.length) {
+        return -1;
+    }
+
+    return 0;
+}
 documents.listen(connection);
 
 connection.listen();

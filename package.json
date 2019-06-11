@@ -4,7 +4,7 @@
   "publisher": "eastman",
   "displayName": "Cfn-Nag Linter",
   "description": "Integrates cfn-nag tool into VSCode.",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "scripts": {
     "postinstall": "cd server && npm install && cd ../client && npm install && cd ..",
     "vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
@@ -81,6 +81,11 @@
           "type": "boolean",
           "default": true,
           "description": "Allow using Metadata to suppress violations"
+        },
+        "cfnNagLint.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow logging of additional information for debugging purposes"
         }
       }
     }
