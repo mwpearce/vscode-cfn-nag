@@ -38,7 +38,13 @@ This extension provides the following settings:
   "cfnNagLint.allowSuppression": true
 
   // Output additional information for debugging purposes. Default: false
-  "cfnNagLint.debug": true
+  "cfnNagLint.debug": true,
+
+  // Path to file that contains a list of rules to NEVER apply
+  "cfnNagLint.blacklistPath": "",
+
+  //Path to a JSON file that contains values to control the behavior of conditions
+  "cfnNagLint.conditionValuesPath": ""
 ```
 
 ## Known Issues
