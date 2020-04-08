@@ -3,7 +3,6 @@
 import {
     createConnection,
     TextDocuments,
-    TextDocument,
     Diagnostic,
     DiagnosticSeverity,
     ProposedFeatures,
@@ -11,15 +10,20 @@ import {
     InitializeResult,
     Position,
     InitializeParams,
-    DidChangeConfigurationNotification
+    DidChangeConfigurationNotification,
+    TextDocumentSyncKind
 } from 'vscode-languageserver';
+
+import {
+    TextDocument
+} from 'vscode-languageserver-textdocument';
 
 import { exec } from 'child_process';
 import { isArray } from 'util';
 
 const connection: IConnection = createConnection(ProposedFeatures.all);
 
-const documents: TextDocuments = new TextDocuments();
+const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
@@ -29,11 +33,20 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
     hasConfigurationCapability = capabilities.workspace && !!capabilities.workspace.configuration;
     hasWorkspaceFolderCapability = capabilities.workspace && !!capabilities.workspace.workspaceFolders;
 
-    return {
+    const result: InitializeResult = {
         capabilities: {
-            textDocumentSync: documents.syncKind
+            textDocumentSync: TextDocumentSyncKind.Full
         }
     };
+    if (hasWorkspaceFolderCapability) {
+        result.capabilities.workspace = {
+            workspaceFolders: {
+                supported: true
+            }
+        };
+    }
+
+    return result;
 });
 
 connection.onInitialized(() => {
@@ -68,6 +81,8 @@ interface CfnNagLintSettings {
     minimumProblemLevel: string;
     allowSuppression: boolean;
     debug: boolean;
+    blacklistPath: string;
+    conditionValuesPath: string;
 }
 
 const defaultSettings: CfnNagLintSettings = {
@@ -77,7 +92,9 @@ const defaultSettings: CfnNagLintSettings = {
     ruleDirectory: '',
     minimumProblemLevel: 'WARN',
     allowSuppression: true,
-    debug: false
+    debug: false,
+    blacklistPath: '',
+    conditionValuesPath: ''
 };
 
 let globalSettings: CfnNagLintSettings = defaultSettings;
@@ -187,12 +204,23 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
 
         if (version) {
             // Only use the output-format parameter on versions 0.4.8 and onward.  Not supported earlier.
-            const comparison = compareVersions(version, '0.4.8');
+            var comparison = compareVersions(version, '0.4.8');
             if (settings.debug) {
                 connection.console.info(`Version comparison = ${comparison}`);
             }
             if (comparison) {
                 args.push('--output-format=json');
+            }
+
+            if (settings.conditionValuesPath != '') {
+                // Only use the condition-values-path parameter on versions 0.4.73 and onware.  Not supported earlier.
+                comparison = compareVersions(version, '0.4.73');
+                if (settings.debug) {
+                    connection.console.info(`Version comparison = ${comparison}`);
+                }
+                if (comparison) {
+                    args.push(`--condition-values-path=${settings.conditionValuesPath}`);
+                }
             }
         } else {
             // Couldn't determine version, so just assume the latest
@@ -216,6 +244,10 @@ async function validateCloudFormationFile(document: TextDocument): Promise<void>
 
         if (settings.parameterValuesPath != '') {
             args.push(`--parameter-values-path=${settings.parameterValuesPath}`);
+        }
+
+        if (settings.blacklistPath != '') {
+            args.push(` --blacklist-path=${settings.blacklistPath}`);
         }
 
         if (settings.debug) {

@@ -6,12 +6,13 @@
     "clean": "rm -rf node_modules && rm -rf out"
   },
   "engines": {
-    "vscode": "^1.26.0",
+    "vscode": "^1.43.0",
     "node": "*"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/vscode": "^1.43.0"
+  },
   "dependencies": {
-    "vscode": "^1.1.34",
-    "vscode-languageclient": "5.1.1"
+    "vscode-languageclient": "^6.1.3"
   }
 }
